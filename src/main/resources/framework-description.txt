@@ -1,0 +1,2 @@
+PSDPAL API Automation Framework for PSDPal web applications.
+Highly scalable, multi-environment and API-first architecture.
