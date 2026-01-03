@@ -21,8 +21,8 @@ public class TokenManager {
 	private static String token;
 	private static long tokenGeneratedTime;
 
-	// Token validity (10 minutes)
-	private static final long TOKEN_VALIDITY = 10 * 60 * 1000;
+	// Token validity
+	private static final long TOKEN_VALIDITY = ConfigReader.getIntOrDefault("token.validity.ms", 600000);
 
 	/**
 	 * Main public entry. Will generate or return cached token.
@@ -49,7 +49,7 @@ public class TokenManager {
 	 * Calls auth API and fetches token dynamically.
 	 */
 	private static void generateNewToken() {
-		System.out.println("⟳ Generating NEW token...");
+		System.out.println("Generating NEW token...");
 
 		// Load auth payload from config
 		String username = ConfigReader.getOrDefault("restful.user", "admin");
@@ -57,17 +57,17 @@ public class TokenManager {
 
 		Map<String, String> authBody = Map.of("username", username, "password", password);
 
-		String baseUrl = ConfigReader.getOrDefault("restful.baseUrl", ConfigReader.getBaseUrl());
+		String baseUrl = ConfigReader.getBaseUrlFor("restfulbooker");
 
 		Response response = given().baseUri(baseUrl).contentType(ContentType.JSON).body(authBody).when().post("/auth")
-				.then().log().all().extract().response();
+				.then().log().ifValidationFails().extract().response();
 
 		validateAuthResponse(response);
 
 		token = response.jsonPath().getString("token");
 		tokenGeneratedTime = System.currentTimeMillis();
 
-		System.out.println("✔ Token generated successfully.");
+		System.out.println("Token generated successfully.");
 	}
 
 	/**
@@ -78,17 +78,22 @@ public class TokenManager {
 		int status = response.getStatusCode();
 
 		if (status != 200 && status != 201) {
-			throw new RuntimeException("❌ Token API failed. HTTP Status: " + status);
+			throw new RuntimeException("Token API failed. HTTP Status: " + status);
 		}
 
 		if (!response.getContentType().contains("application/json")) {
-			throw new RuntimeException("❌ Token API did not return JSON.");
+			throw new RuntimeException("Token API did not return JSON.");
 		}
 
 		String tokenValue = response.jsonPath().getString("token");
 
 		if (tokenValue == null || tokenValue.isEmpty()) {
-			throw new RuntimeException("❌ Token field missing in response JSON!");
+			throw new RuntimeException("Token field missing in response JSON!");
 		}
 	}
+
+	public static String getAuthHeader() {
+		return "Bearer " + getToken();
+	}
+
 }

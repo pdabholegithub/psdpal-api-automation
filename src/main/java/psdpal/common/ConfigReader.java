@@ -27,11 +27,11 @@ public class ConfigReader {
 
 			if (envFile != null) {
 				props.load(envFile);
-				System.out.println("✔ Loaded environment file: " + fileName);
+				System.out.println("Loaded environment file: " + fileName);
 
 			} else {
-				System.out.println("⚠ Environment file NOT found: " + fileName);
-				System.out.println("→ Loading default application.properties");
+				System.out.println("Environment file NOT found: " + fileName);
+				System.out.println("Loading default application.properties");
 
 				try (InputStream defaultFile = ConfigReader.class.getClassLoader()
 						.getResourceAsStream("application.properties")) {
@@ -39,12 +39,13 @@ public class ConfigReader {
 					if (defaultFile != null) {
 						props.load(defaultFile);
 					} else {
-						throw new RuntimeException("❌ Default application.properties missing!");
+						throw new RuntimeException("Default application.properties missing!");
 					}
 				}
 			}
+			System.out.println("Active ENV = " + ENV);
 		} catch (Exception ex) {
-			throw new RuntimeException("❌ Failed to load configuration!", ex);
+			throw new RuntimeException("Failed to load configuration!", ex);
 		}
 	}
 
@@ -114,7 +115,7 @@ public class ConfigReader {
 		String value = get(key);
 
 		if (value == null || value.isEmpty()) {
-			throw new IllegalArgumentException("❌ Missing base URL for key: " + key);
+			throw new IllegalArgumentException("Missing base URL for key: " + key);
 		}
 
 		return value;
@@ -125,7 +126,7 @@ public class ConfigReader {
 		String url = get("baseUrl");
 
 		if (url == null || url.isEmpty()) {
-			throw new RuntimeException("❌ baseUrl not found in properties file!");
+			throw new RuntimeException("baseUrl not found in properties file!");
 		}
 
 		return url;
